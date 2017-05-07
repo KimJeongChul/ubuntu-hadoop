@@ -22,10 +22,10 @@ ENV JAVA_HOME /usr/java/default/
 ENV PATH $PATH:$JAVA_HOME/bin
 
 # hadoop
-RUN wget http://ftp.daumkakao.com/apache/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
-RUN tar -xvzf hadoop-2.6.0.tar.gz -C /usr/local/
-RUN cd /usr/local && ln -s ./hadoop-2.6.0 hadoop
-RUN rm hadoop-2.6.0.tar.gz
+RUN wget http://mirror.navercorp.com/apache/hadoop/common/hadoop-2.6.5/hadoop-2.6.5.tar.gz
+RUN tar -xvzf hadoop-2.6.5.tar.gz -C /usr/local/
+RUN cd /usr/local && ln -s ./hadoop-2.6.5 hadoop
+RUN rm hadoop-2.6.5.tar.gz
 
 ENV HADOOP_PREFIX /usr/local/hadoop
 ENV PATH $PATH:$HADOOP_PREFIX/bin:$HADOOP_PREFIX/sbin
