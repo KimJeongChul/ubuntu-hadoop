@@ -18,7 +18,7 @@ RUN mkdir -p /usr/java/default
 RUN wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
 RUN tar -xzvf jdk-8u131-linux-x64.tar.gz -C /usr/java/default --strip-components=1
 
-ENV JAVA_HOME /usr/java/default/
+ENV JAVA_HOME /usr/java/default
 ENV PATH $PATH:$JAVA_HOME/bin
 RUN rm -rf /usr/bin/java
 RUN ln -s $JAVA_HOME/bin/java /usr/bin/java
