@@ -18,17 +18,27 @@ RUN mkdir -p /usr/java/default
 RUN wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
 RUN tar -xzvf jdk-8u131-linux-x64.tar.gz -C /usr/java/default --strip-components=1
 
+# java env
 ENV JAVA_HOME /usr/java/default/
 ENV PATH $PATH:$JAVA_HOME/bin
 
-# hadoop
-RUN wget http://mirror.navercorp.com/apache/hadoop/common/hadoop-2.6.5/hadoop-2.6.5.tar.gz
-RUN tar -xvzf hadoop-2.6.5.tar.gz -C /usr/local/
-RUN cd /usr/local && ln -s ./hadoop-2.6.5 hadoop
-RUN rm hadoop-2.6.5.tar.gz
 
+# hadoop
+RUN wget http://mirror.navercorp.com/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
+RUN tar -xvzf hadoop-2.7.3.tar.gz -C /usr/local/
+RUN cd /usr/local && ln -s ./hadoop-2.7.3 hadoop
+RUN rm hadoop-2.7.3.tar.gz
+
+# hadoop env
 ENV HADOOP_PREFIX /usr/local/hadoop
+ENV HADOOP_COMMON_HOME /usr/local/hadoop
+ENV HADOOP_HDFS_HOME /usr/local/hadoop
+ENV HADOOP_MAPRED_HOME /usr/local/hadoop
+ENV HADOOP_YARN_HOME /usr/local/hadoop
+ENV HADOOP_CONF_DIR /usr/local/hadoop/etc/hadoop
+ENV YARN_CONF_DIR $HADOOP_PREFIX/etc/hadoop
 ENV PATH $PATH:$HADOOP_PREFIX/bin:$HADOOP_PREFIX/sbin
+
 RUN sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/java/default\nexport HADOOP_PREFIX=/usr/local/hadoop\nexport HADOOP_HOME=/usr/local/hadoop\n:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
 RUN sed -i '/^export HADOOP_CONF_DIR/ s:.*:export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop/:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
 
@@ -37,7 +47,6 @@ RUN mkdir -pv $HADOOP_PREFIX/dfs
 RUN mkdir -pv $HADOOP_PREFIX/dfs/name
 RUN mkdir -pv $HADOOP_PREFIX/dfs/data
 RUN mkdir -pv $HADOOP_PREFIX/tmp
-
 
 RUN cp $HADOOP_PREFIX/etc/hadoop/*.xml $HADOOP_PREFIX/input
 
@@ -51,10 +60,10 @@ ADD slaves $HADOOP_PREFIX/etc/hadoop/slaves
 RUN $HADOOP_PREFIX/bin/hdfs namenode -format
 
 # fixing the libhadoop.so like a boss
-RUN rm  /usr/local/hadoop/lib/native/*
-RUN wget http://dl.bintray.com/sequenceiq/sequenceiq-bin/hadoop-native-64-2.6.0.tar
-RUN tar xvf hadoop-native-64-2.6.0.tar -C /usr/local/hadoop/lib/native/
-RUN rm hadoop-native-64-2.6.0.tar
+RUN rm -rf /usr/local/hadoop/lib/native/*
+RUN wget http://dl.bintray.com/sequenceiq/sequenceiq-bin/hadoop-native-64-2.7.0.tar
+RUN tar xvf hadoop-native-64-2.7.0.tar -C /usr/local/hadoop/lib/native/
+RUN rm hadoop-native-64-2.7.0.tar
 
 ADD ssh_config /root/.ssh/config
 RUN chmod 600 /root/.ssh/config
@@ -70,8 +79,8 @@ RUN sed  -i "/^[^#]*UsePAM/ s/.*/#&/"  /etc/ssh/sshd_config
 RUN echo "UsePAM no" >> /etc/ssh/sshd_config
 RUN echo "Port 2122" >> /etc/ssh/sshd_config
 
-#RUN service ssh start && $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh && $HADOOP_PREFIX/sbin/start-dfs.sh && $HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /user/root
-#RUN service ssh start && $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh && $HADOOP_PREFIX/sbin/start-dfs.sh && $HADOOP_PREFIX/bin/hdfs dfs -put $HADOOP_PREFIX/etc/hadoop/ input
+RUN service ssh start && $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh && $HADOOP_PREFIX/sbin/start-dfs.sh && $HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /user/root
+RUN service ssh start && $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh && $HADOOP_PREFIX/sbin/start-dfs.sh && $HADOOP_PREFIX/bin/hdfs dfs -put $HADOOP_PREFIX/etc/hadoop/ input
 
 COPY bootstrap.sh /etc/bootstrap.sh
 RUN chown root.root /etc/bootstrap.sh
@@ -87,6 +96,6 @@ EXPOSE 10020 19888
 EXPOSE 8030 8031 8032 8033 8040 8042 8088
 
 # Other ports
-EXPOSE 49707 2122 22
+EXPOSE 49707 2122
 
 ENTRYPOINT ["/etc/bootstrap.sh"]
